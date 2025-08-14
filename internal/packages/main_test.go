@@ -17,7 +17,7 @@ func TestExamples(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		got, err := Solve(tc.items, sizes)
+		got, err := RetrievePackages(tc.items, sizes)
 		if err != nil {
 			t.Fatalf("err: %v", err)
 		}
