@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"pack-calculator/internal/solver"
+	"pack-calculator/internal/packages"
 	"sort"
 
 	"github.com/gofiber/fiber/v2"
@@ -56,7 +56,7 @@ func main() {
 		if items <= 0 {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "items must be > 0"})
 		}
-		res, err := solver.Solve(items, packs)
+		res, err := packages.RetrievePackages(items, packs)
 		if err != nil {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
@@ -71,7 +71,7 @@ func main() {
 		if err := c.BodyParser(&body); err != nil || body.Items <= 0 {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid body"})
 		}
-		res, err := solver.Solve(body.Items, packs)
+		res, err := packages.RetrievePackages(body.Items, packs)
 		if err != nil {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
