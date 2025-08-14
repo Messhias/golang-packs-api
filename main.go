@@ -47,7 +47,7 @@ func main() {
 
 	// UI
 	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString(indexHTML)
+		return c.SendFile("./public/index.html") // ajuste o caminho para a pasta que você colocou
 	})
 
 	// GET /calculate?items=251
@@ -78,42 +78,11 @@ func main() {
 		return c.JSON(res)
 	})
 
+	app.Static("/", "./public")
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 	log.Fatal(app.Listen(":" + port))
 }
-
-const indexHTML = `<!doctype html>
-<html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Pack Calculator</title>
-<style>
-body{font-family:system-ui,Arial,sans-serif;margin:40px}
-input,button{font-size:16px;padding:8px 10px}
-.card{border:1px solid #ddd;border-radius:12px;padding:20px;max-width:520px}
-.result{margin-top:16px;white-space:pre;font-family:ui-monospace,Consolas,monospace}
-</style>
-</head><body>
-<h1>Pack Calculator</h1>
-<div class="card">
-  <label>Items: <input id="items" type="number" min="1" value="251"></label>
-  <button id="calc">Calculate</button>
-  <div class="result" id="out"></div>
-</div>
-<script>
-document.getElementById('calc').onclick = async () => {
-  const items = document.getElementById('items').value;
-  const res = await fetch('/calculate?items='+items);
-  const data = await res.json();
-  if(!res.ok){ document.getElementById('out').textContent = 'Error: '+(data.error||res.status); return; }
-  let lines = [];
-  lines.push('Total items sent: '+data.total_items);
-  const packs = Object.entries(data.packs_used).sort((a,b)=>Number(b[0])-Number(a[0]));
-  for(const [size,count] of packs){
-  }
-  document.getElementById('out').textContent = lines.join('\n');
-};
-</script>
-</body></html>`
