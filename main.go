@@ -47,7 +47,39 @@ func main() {
 
 	// UI
 	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendFile("./public/index.html") // ajuste o caminho para a pasta que você colocou
+		return c.SendFile("./public/index.html")
+	})
+
+	// Get current pack sizes
+	app.Get("/pack-sizes", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"pack_sizes": packs,
+		})
+	})
+
+	// Update pack sizes
+	app.Post("/pack-sizes", func(c *fiber.Ctx) error {
+		var body struct {
+			PackSizes []int `json:"pack_sizes"`
+		}
+		if err := c.BodyParser(&body); err != nil {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
+		}
+
+		// Validate pack sizes
+		for _, size := range body.PackSizes {
+			if size <= 0 {
+				return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Pack sizes must be positive integers"})
+			}
+		}
+
+		// Update the packs slice
+		packs = body.PackSizes
+		sort.Slice(packs, func(i, j int) bool { return packs[i] > packs[j] })
+
+		return c.JSON(fiber.Map{
+			"pack_sizes": packs,
+		})
 	})
 
 	// GET /calculate?items=251
