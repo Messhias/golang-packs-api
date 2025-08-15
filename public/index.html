@@ -358,7 +358,6 @@
                 });
 
                 if (response.ok) {
-                    const data = await response.json();
                     showSuccess('Pack sizes updated successfully!');
                 } else {
                     let errorMessage = 'Failed to update pack sizes';
