@@ -91,23 +91,6 @@ on your machine._**.
    docker run -p 8080:8080 pack-calculator
    ```
 
-## Project Structure
-
-```
-packs-mono-repo/
-├── main.go                 # Main application entry point
-├── go.mod                  # Go module dependencies
-├── go.sum                  # Dependency checksums
-├── packs.json              # Default pack sizes configuration
-├── public/
-│   └── index.html          # Web UI
-├── internal/
-│   └── packages/           # Core pack calculation logic
-├── Dockerfile              # Docker configuration
-├── docker-compose.yml      # Docker Compose configuration
-└── README.md               # This file
-```
-
 ## Technology Stack
 
 - **Backend**: Go with Fiber web framework
@@ -132,18 +115,6 @@ go build -o pack-calculator main.go
 - `internal/packages/`: Core algorithm implementation
 - `public/index.html`: Modern, responsive web interface
 
-## Algorithm
-
-The application uses an exhaustive search algorithm to find the optimal pack combination:
-
-1. **Single Pack Check**: First tries to find a single pack that can fulfill the order
-2. **Two Pack Combinations**: Searches combinations of two different pack sizes
-3. **Three Pack Combinations**: Extends to three pack combinations if needed
-4. **Four and Five Pack Combinations**: For complex cases, searches up to five pack combinations
-
-The algorithm prioritizes minimizing total items (Rule 2) and then minimizes the number of packs (Rule 3).
-
-## Contributing
 
 1. Fork the repository
 2. Create a feature branch
