@@ -2,7 +2,7 @@ package packages
 
 import "testing"
 
-func TestExamples(t *testing.T) {
+func TestRetrievePackages(t *testing.T) {
 	sizes := []int{250, 500, 1000, 2000, 5000}
 
 	cases := []struct {
