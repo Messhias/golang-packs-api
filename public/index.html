@@ -1,33 +1,470 @@
-<!doctype html>
-<html lang="en"><head>
-    <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Pack Calculator</title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Packs Calculator</title>
     <style>
-        body{font-family:system-ui,Arial,sans-serif;margin:40px}
-        input,button{font-size:16px;padding:8px 10px}
-        .card{border:1px solid #ddd;border-radius:12px;padding:20px;max-width:520px}
-        .result{margin-top:16px;white-space:pre;font-family:ui-monospace,Consolas,monospace}
-    </style>
-</head><body>
-<h1>Pack Calculator</h1>
-<div class="card">
-    <label>Items: <input id="items" type="number" min="1" value="251"></label>
-    <button id="calc">Calculate</button>
-    <div class="result" id="out"></div>
-</div>
-<script>
-    document.getElementById('calc').onclick = async () => {
-        const items = document.getElementById('items').value;
-        const res = await fetch('/calculate?items='+items);
-        const data = await res.json();
-        if(!res.ok){ document.getElementById('out').textContent = 'Error: '+(data.error||res.status); return; }
-        let lines = [];
-        lines.push('Total items sent: '+data.total_items);
-        const packs = Object.entries(data.packs_used).sort((a,b)=>Number(b[0])-Number(a[0]));
-        for(const [size,count] of packs){
-            lines.push(`${count} x ${size}`);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        document.getElementById('out').textContent = lines.join('\n');
-    };
-</script>
-</body></html>
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section h2 {
+            color: #1f2937;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 10px;
+        }
+
+        .pack-sizes-form {
+            display: grid;
+            gap: 15px;
+        }
+
+        .pack-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group label {
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        input[type="number"] {
+            padding: 12px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: fit-content;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .calculate-form {
+            display: flex;
+            gap: 15px;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+
+        .result-section {
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .result-table th,
+        .result-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .result-table th {
+            background: #f3f4f6;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .result-table td {
+            color: #1f2937;
+        }
+
+        .summary {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .summary h3 {
+            color: #065f46;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .summary p {
+            color: #047857;
+            margin-bottom: 5px;
+        }
+
+        .error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #6b7280;
+        }
+
+        .spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #4f46e5;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 12px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .calculate-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .pack-inputs {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Order Packs Calculator</h1>
+            <p>Calculate optimal pack combinations for customer orders</p>
+        </div>
+
+        <div class="content">
+            <!-- Pack Sizes Section -->
+            <div class="section">
+                <h2>Pack Sizes</h2>
+                <div class="pack-sizes-form">
+                    <div class="pack-inputs">
+                        <div class="input-group">
+                            <label for="pack1">Pack Size 1</label>
+                            <input type="number" id="pack1" value="250" min="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="pack2">Pack Size 2</label>
+                            <input type="number" id="pack2" value="500" min="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="pack3">Pack Size 3</label>
+                            <input type="number" id="pack3" value="1000" min="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="pack4">Pack Size 4</label>
+                            <input type="number" id="pack4" value="2000" min="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="pack5">Pack Size 5</label>
+                            <input type="number" id="pack5" value="5000" min="1">
+                        </div>
+                    </div>
+                    <button class="btn" onclick="updatePackSizes()">Submit pack sizes change</button>
+                </div>
+            </div>
+
+            <!-- Calculate Section -->
+            <div class="section">
+                <h2>Calculate packs for order</h2>
+                <div class="calculate-form">
+                    <div class="input-group">
+                        <label for="items">Items:</label>
+                        <input type="number" id="items" value="263" min="1">
+                    </div>
+                    <button class="btn" onclick="calculatePacks()">Calculate</button>
+                </div>
+
+                <!-- Results Section -->
+                <div id="results" style="display: none;">
+                    <div class="result-section">
+                        <h3>Results</h3>
+                        <div class="summary" id="summary"></div>
+                        <table class="result-table" id="resultTable">
+                            <thead>
+                                <tr>
+                                    <th>Pack</th>
+                                    <th>Quantity</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Loading -->
+                <div id="loading" class="loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Calculating optimal pack combination...</p>
+                </div>
+
+                <!-- Error -->
+                <div id="error" class="error" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load current pack sizes on page load
+        window.onload = function() {
+            loadCurrentPackSizes();
+        };
+
+        async function loadCurrentPackSizes() {
+            try {
+                const response = await fetch('/pack-sizes');
+                if (response.ok) {
+                    const data = await response.json();
+                    const packInputs = ['pack1', 'pack2', 'pack3', 'pack4', 'pack5'];
+                    data.pack_sizes.forEach((size, index) => {
+                        if (packInputs[index]) {
+                            document.getElementById(packInputs[index]).value = size;
+                        }
+                    });
+                }
+            } catch (error) {
+                console.log('Could not load current pack sizes:', error);
+            }
+        }
+
+        async function updatePackSizes() {
+            const packSizes = [];
+            for (let i = 1; i <= 5; i++) {
+                const value = parseInt(document.getElementById(`pack${i}`).value);
+                if (value > 0) {
+                    packSizes.push(value);
+                }
+            }
+
+            if (packSizes.length === 0) {
+                showError('Please enter at least one valid pack size');
+                return;
+            }
+
+            try {
+                const response = await fetch('/pack-sizes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ pack_sizes: packSizes })
+                });
+
+                if (response.ok) {
+                    showSuccess('Pack sizes updated successfully!');
+                } else {
+                    const data = await response.json();
+                    showError(data.error || 'Failed to update pack sizes');
+                }
+            } catch (error) {
+                showError('Failed to update pack sizes: ' + error.message);
+            }
+        }
+
+        async function calculatePacks() {
+            const items = parseInt(document.getElementById('items').value);
+            
+            if (!items || items <= 0) {
+                showError('Please enter a valid number of items');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                const response = await fetch('/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ items: items })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResults(data);
+                } else {
+                    showError(data.error || 'Failed to calculate packs');
+                }
+            } catch (error) {
+                showError('Failed to calculate packs: ' + error.message);
+            }
+        }
+
+        function showResults(data) {
+            hideLoading();
+            hideError();
+
+            const resultsDiv = document.getElementById('results');
+            const summaryDiv = document.getElementById('summary');
+            const resultBody = document.getElementById('resultBody');
+
+            // Update summary
+            summaryDiv.innerHTML = `
+                <h3>Order Summary</h3>
+                <p><strong>Items Ordered:</strong> ${data.items_ordered || data.total_items}</p>
+                <p><strong>Total Items Sent:</strong> ${data.total_items}</p>
+                <p><strong>Total Packs:</strong> ${data.total_packs || Object.values(data.packs_used).reduce((a, b) => a + b, 0)}</p>
+            `;
+
+            // Update table
+            resultBody.innerHTML = '';
+            const packs = Object.entries(data.packs_used).sort((a, b) => Number(b[0]) - Number(a[0]));
+            
+            packs.forEach(([size, quantity]) => {
+                const row = resultBody.insertRow();
+                row.insertCell(0).textContent = size;
+                row.insertCell(1).textContent = quantity;
+            });
+
+            resultsDiv.style.display = 'block';
+        }
+
+        function showLoading() {
+            hideResults();
+            hideError();
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function showError(message) {
+            hideLoading();
+            hideResults();
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('error').style.display = 'none';
+        }
+
+        function hideResults() {
+            document.getElementById('results').style.display = 'none';
+        }
+
+        function showSuccess(message) {
+            // Simple success feedback
+            const btn = document.querySelector('button[onclick="updatePackSizes()"]');
+            const originalText = btn.textContent;
+            btn.textContent = '✓ ' + message;
+            btn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+            
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
