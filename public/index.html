@@ -358,10 +358,17 @@
                 });
 
                 if (response.ok) {
+                    const data = await response.json();
                     showSuccess('Pack sizes updated successfully!');
                 } else {
-                    const data = await response.json();
-                    showError(data.error || 'Failed to update pack sizes');
+                    let errorMessage = 'Failed to update pack sizes';
+                    try {
+                        const data = await response.json();
+                        errorMessage = data.error || errorMessage;
+                    } catch (parseError) {
+                        errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+                    }
+                    showError(errorMessage);
                 }
             } catch (error) {
                 showError('Failed to update pack sizes: ' + error.message);
@@ -387,12 +394,18 @@
                     body: JSON.stringify({ items: items })
                 });
 
-                const data = await response.json();
-
                 if (response.ok) {
+                    const data = await response.json();
                     showResults(data);
                 } else {
-                    showError(data.error || 'Failed to calculate packs');
+                    let errorMessage = 'Failed to calculate packs';
+                    try {
+                        const data = await response.json();
+                        errorMessage = data.error || errorMessage;
+                    } catch (parseError) {
+                        errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+                    }
+                    showError(errorMessage);
                 }
             } catch (error) {
                 showError('Failed to calculate packs: ' + error.message);
